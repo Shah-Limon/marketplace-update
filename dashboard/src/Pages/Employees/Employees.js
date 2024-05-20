@@ -1,0 +1,307 @@
+import React, { useEffect, useState } from "react";
+import SidebarMenu from "../../components/Shared/SidebarMenu";
+import Pagination from "../../components/Shared/Pagination";
+
+const Employees = () => {
+    const [employee, setEmployee] = useState([]);
+    useEffect(() => {
+        fetch(`http://localhost:5000/employees`)
+            .then((res) => res.json())
+            .then((info) => setEmployee(info.reverse()));
+    }, []);
+
+    //pagination 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentService = employee.slice(indexOfFirstItem, indexOfLastItem);
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
+
+    const handleCreateEmployees = (event) => {
+        event.preventDefault();
+        const EmployeesName = event.target.EmployeesName.value;
+        const EmployeesEmail = event.target.EmployeesEmail.value;
+        const location = event.target.location.value;
+
+        const add = {
+            EmployeesName,
+            EmployeesEmail,
+            location,
+        };
+
+        const url = `http://localhost:5000/add-employee`;
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "content-type": "application/json",
+            },
+            body: JSON.stringify(add),
+        })
+            .then((res) => res.json())
+            .then((result) => {
+                event.target.reset();
+
+                // Close the modal
+                const modal = document.querySelector('.modal');
+                if (modal) {
+                    modal.classList.remove('show');
+                }
+
+                const modalBackdrop = document.querySelector('.modal-backdrop');
+                if (modalBackdrop) {
+                    modalBackdrop.parentNode.removeChild(modalBackdrop);
+                }
+                fetch(`http://localhost:5000/employees`)
+                    .then((res) => res.json())
+                    .then((info) => setEmployee(info.reverse()));
+            })
+            .catch((error) => {
+
+                console.error('Error creating service:', error);
+            });
+    };
+
+
+    const handleEditServiceEmployees = (event, id) => {
+        event.preventDefault();
+        const EmployeesName = event.target.EmployeesName.value;
+        const EmployeesEmail = event.target.EmployeesEmail.value;
+        const location = event.target.location.value;
+
+        const edit = {
+            EmployeesName,
+            EmployeesEmail,
+            location,
+        };
+
+        const url = `http://localhost:5000/update-employee/${id}`;
+        fetch(url, {
+            method: "PUT",
+            headers: {
+                "content-type": "application/json",
+            },
+            body: JSON.stringify(edit),
+        })
+            .then((res) => res.json())
+            .then((result) => {
+                event.target.reset();
+                const modal = document.querySelector(`.colorModal${id}`);
+                if (modal) {
+                    modal.classList.remove('show');
+                }
+
+                const modalBackdrop = document.querySelector('.modal-backdrop');
+                if (modalBackdrop) {
+                    modalBackdrop.parentNode.removeChild(modalBackdrop);
+                }
+                fetch(`http://localhost:5000/employees`)
+                    .then((res) => res.json())
+                    .then((info) => setEmployee(info.reverse()));
+            })
+            .catch((error) => {
+                console.error('Error creating service:', error);
+            });
+    };
+
+    return (
+        <>
+            <>
+                <SidebarMenu></SidebarMenu>
+                <div className="main-content">
+                    <div className="page-content">
+                        <div className="container-fluid">
+                            <div class="col-sm-6 col-md-4 col-xl-3">
+                                <div class="my-4 text-center">
+                                    <button type="button" class="btn btn-success waves-effect waves-light"
+                                        data-bs-toggle="modal" data-bs-target=".bs-example-modal-center-addServices"><i
+                                            class="mdi mdi-plus me-2"></i>Add Employees</button>
+                                </div>
+                                <div class="modal fade bs-example-modal-center-addServices" tabindex="-1" role="dialog"
+                                    aria-labelledby="mySmallModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form className="comment-form" onSubmit={handleCreateEmployees}>
+                                                    <div className="fadeInUp style-2 text-center">
+                                                        <div className="main-title"><h3>Add Employees</h3></div>
+                                                    </div>
+                                                    <div className="columns  gap20">
+                                                        <fieldset className="email">
+                                                            <label className="mb-2">Employee Name</label>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Employee Name"
+                                                                className="form-control"
+                                                                name="EmployeesName"
+                                                            />
+                                                        </fieldset>
+                                                        <fieldset className="email">
+                                                            <label className="mb-2">Employee Email</label>
+                                                            <input
+                                                                type="email"
+                                                                placeholder="Employee Email"
+                                                                className="form-control"
+                                                                name="EmployeesEmail"
+                                                            />
+                                                        </fieldset>
+                                                        <fieldset className="email">
+                                                            <label className="mb-2">Employee location</label>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Employee Name"
+                                                                className="form-control"
+                                                                name="location"
+                                                            />
+                                                        </fieldset>
+
+
+
+                                                    </div>
+
+                                                    <div className="text-center">
+                                                        <button className="btn btn-success waves-effect waves-light mt-5" type="submit">
+                                                            Add
+                                                        </button>
+
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h4 class="card-title">Employees List</h4>
+
+                                            <div class="table-responsive">
+                                                <table class="table table-editable table-nowrap align-middle table-edits">
+                                                    <thead>
+                                                        <tr>
+
+                                                            <th>Name</th>
+                                                            <th>Email</th>
+                                                            <th>location</th>
+                                                            <th>Edit</th>
+                                                        </tr>
+                                                    </thead>
+
+                                                    <tbody>
+                                                        {employee === null ? (
+                                                            <tr>
+                                                                <td colSpan="4">Loading...</td>
+                                                            </tr>
+                                                        ) : currentService.map((e, index) => (
+                                                            <tr key={e._id}>
+
+                                                                <td style={{ width: '20%' }} data-field="name">{e.EmployeesName}</td>
+                                                                <td data-field="age">{e.EmployeesEmail}</td>
+                                                                <td data-field="age">{e.location}</td>
+                                                                <td style={{ width: '10%' }}>
+
+                                                                    <button class="btn btn-outline-secondary btn-sm edit" title="Edit" type="button" data-bs-toggle="modal" data-bs-target={`#colorModal${index}`}>
+                                                                        <i class="fas fa-pencil-alt"></i>
+                                                                    </button>
+
+                                                                </td>
+                                                                <td>
+
+                                                                    <div className={`modal fade colorModal${e._id}`} id={`colorModal${index}`} tabIndex="-1" aria-labelledby={`exampleModalLabelStatus${index}`} aria-hidden="true">
+                                                                        <div className="modal-dialog modal-dialog-centered">
+                                                                            <div className="modal-content">
+                                                                                <div className="modal-header">
+                                                                                    <h5 className="modal-title" id={`exampleModalLabelStatus${index}`}>Edit</h5>
+                                                                                    <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                                </div>
+                                                                                <div className="modal-body">
+                                                                                    <form className="comment-form" onSubmit={(event) => handleEditServiceEmployees(event, e._id)}>
+                                                                                        <div className="fadeInUp style-2 text-center">
+                                                                                            <div className="main-title"><h3>Edit Employee Info</h3></div>
+                                                                                        </div>
+                                                                                        <div className="columns  gap20">
+                                                                                            <fieldset className="email">
+                                                                                                <label className="mb-2">Employee Name</label>
+                                                                                                <input
+                                                                                                    type="text"
+                                                                                                    placeholder="Employee Name"
+                                                                                                    className="form-control"
+                                                                                                    name="EmployeesName"
+                                                                                                    defaultValue={e.EmployeesName}
+                                                                                                />
+                                                                                            </fieldset>
+                                                                                            <fieldset className="email">
+                                                                                                <label className="mb-2">Employee Email</label>
+                                                                                                <input
+                                                                                                    type="email"
+                                                                                                    placeholder="Employee Email"
+                                                                                                    className="form-control"
+                                                                                                    name="EmployeesEmail"
+                                                                                                    defaultValue={e.EmployeesEmail}
+                                                                                                />
+                                                                                            </fieldset>
+                                                                                            <fieldset className="email">
+                                                                                                <label className="mb-2">Employee location</label>
+                                                                                                <input
+                                                                                                    type="text"
+                                                                                                    placeholder="Employee Name"
+                                                                                                    className="form-control"
+                                                                                                    name="location"
+                                                                                                    defaultValue={e.location}
+                                                                                                />
+                                                                                            </fieldset>
+
+
+
+                                                                                        </div>
+
+                                                                                        <div className="text-center">
+                                                                                            <button className="btn btn-success waves-effect waves-light mt-5" type="submit">
+                                                                                                Edit
+                                                                                            </button>
+
+                                                                                        </div>
+                                                                                    </form>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+
+                                                </table>
+                                            </div>
+                                            <Pagination
+                                                currentPage={currentPage}
+                                                totalPages={Math.ceil(employee.length / itemsPerPage)}
+                                                onPageChange={handlePageChange}
+                                            />
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </>
+        </>
+    );
+};
+
+export default Employees;
